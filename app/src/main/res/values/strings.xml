@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">AutoAddWxHelper</string>
+
+    <string name="txt_wx_accessibility_name">小小微自动添加微信好友助手</string>
+    <string name="txt_turn2setting_wx_accessibility">请在设置中开启「%1$s」</string>
+    <string name="txt_wx_accessibility_description">开启助手后小小微可以帮助自动添加微信好友</string>
+    <string name="txt_add_wx_hint">我是%1$s</string>
+
+</resources>
