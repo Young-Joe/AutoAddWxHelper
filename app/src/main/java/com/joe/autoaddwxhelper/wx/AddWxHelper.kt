@@ -4,9 +4,9 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.joe.autoaddwxhelper.R
+import com.joe.autoaddwxhelper.showToast
 import com.joe.autoaddwxhelper.wx.BaseAccessibilityService.Companion.instance
 import com.joe.autoaddwxhelper.wx.WxAccessibilityService.Companion.setAddInfo
 import java.lang.ref.WeakReference
@@ -37,7 +37,7 @@ class AddWxHelper(context: Context) : ILifecycle {
             val context = mWeakRfContext.get() ?: return
             instance!!.init(context)
             if (!instance!!.checkAccessibilityEnabled(WxAccessibilityService::class.java.simpleName)) {
-                showToast("请您先开启" + context.getString(R.string.txt_wx_accessibility_name))
+                context.showToast("请您先开启" + context.getString(R.string.txt_wx_accessibility_name))
                 instance!!.goAccess()
             } else {
                 mIsRequestedAccessibilityPms = false
@@ -72,7 +72,7 @@ class AddWxHelper(context: Context) : ILifecycle {
                 turn2addWx()
             }
         } else {
-            showToast("该线索没有微信")
+            context.showToast("该线索没有微信")
         }
     }
 
@@ -94,12 +94,8 @@ class AddWxHelper(context: Context) : ILifecycle {
             intent.component = cmp
             mWeakRfContext.get()?.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            showToast("检查到您手机没有安装微信，请安装后使用该功能！")
+            mWeakRfContext.get()?.showToast("检查到您手机没有安装微信，请安装后使用该功能！")
         }
-    }
-
-    private fun showToast(hint: String) {
-        Toast.makeText(mWeakRfContext.get(), hint, Toast.LENGTH_SHORT).show()
     }
 
 }

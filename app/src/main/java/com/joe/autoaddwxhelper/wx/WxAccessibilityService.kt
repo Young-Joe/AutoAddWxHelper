@@ -3,10 +3,7 @@ package com.joe.autoaddwxhelper.wx
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
-import android.widget.Toast
-import com.joe.autoaddwxhelper.wx.BaseAccessibilityService
-import com.joe.autoaddwxhelper.wx.WxPageClassDef
-import com.joe.autoaddwxhelper.wx.WxViewIdDef
+import com.joe.autoaddwxhelper.showToast
 
 /**
  * Description：
@@ -204,10 +201,6 @@ class WxAccessibilityService : BaseAccessibilityService() {
             }
         }
 
-    }
-
-    private fun showToast(hint: String) {
-        Toast.makeText(applicationContext, hint, Toast.LENGTH_SHORT).show()
     }
 
 }

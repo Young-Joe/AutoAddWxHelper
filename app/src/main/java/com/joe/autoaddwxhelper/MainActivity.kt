@@ -1,7 +1,6 @@
 package com.joe.autoaddwxhelper
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.joe.autoaddwxhelper.wx.AddWxHelper
 import kotlinx.android.synthetic.main.activity_main.*
@@ -27,10 +26,6 @@ class MainActivity : AppCompatActivity() {
             mAddWxHelper!!.check2add(wxId)
         }
 
-    }
-
-    private fun showToast(hint: String) {
-        Toast.makeText(this, hint, Toast.LENGTH_SHORT).show()
     }
 
 }
