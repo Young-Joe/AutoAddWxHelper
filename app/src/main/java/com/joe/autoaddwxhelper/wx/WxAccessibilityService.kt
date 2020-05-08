@@ -1,5 +1,9 @@
 package com.joe.autoaddwxhelper.wx
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
@@ -45,12 +49,32 @@ class WxAccessibilityService : BaseAccessibilityService() {
         }
     }
 
+    /**
+     * 监听触发home/recent时取消autoAdd操作
+     */
+    private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            //homekey recentapps
+            val reason = intent.getStringExtra("reason")
+            if (!isAddDone) {
+                setAddDone()
+                isAddAction = false
+            }
+        }
+    }
+
     override fun onServiceConnected() {
         super.onServiceConnected()
+        val filter = IntentFilter()
+        filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
+        registerReceiver(receiver, filter)
     }
 
     override fun onInterrupt() {}
 
+    /**
+     * 只能监听物理按键
+     */
     override fun onKeyEvent(event: KeyEvent): Boolean {
         return super.onKeyEvent(event)
     }
