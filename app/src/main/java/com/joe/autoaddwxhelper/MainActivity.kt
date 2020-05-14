@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
                 mAddWxHelper = AddWxHelper(this)
                 lifecycle.addObserver(mAddWxHelper!!)
             }
-            mAddWxHelper!!.check2add(wxId)
+            mAddWxHelper!!.check2add(wxId, mEdtSayHi.text.toString(), mEdtNote.text.toString())
         }
 
     }

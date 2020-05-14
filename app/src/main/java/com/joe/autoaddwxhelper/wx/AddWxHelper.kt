@@ -26,11 +26,19 @@ class AddWxHelper(context: Context) : ILifecycle {
      */
     private var mIsRequestedAccessibilityPms = false
     private var mCurrentNeedAddWxId: String? = null
+    /**
+     * 添加好友-招呼语
+     */
+    private var mCurrentSayHiTxt: String? = null
+    /**
+     * 添加好友-备注
+     */
+    private var mCurrentNote: String? = null
 
 
-    override fun onCreate() {}
+    override fun onCreate() { }
 
-    override fun onPause() {}
+    override fun onPause() { }
 
     override fun onResume() {
         if (mIsRequestedAccessibilityPms) {
@@ -50,9 +58,11 @@ class AddWxHelper(context: Context) : ILifecycle {
         mWeakRfContext.clear()
     }
 
-    fun check2add(wxId: String?) {
+    fun check2add(wxId: String?, sayHiTxt: String?, noteTxt: String?) {
         val context = mWeakRfContext.get() ?: return
         mCurrentNeedAddWxId = wxId
+        mCurrentSayHiTxt = sayHiTxt
+        mCurrentNote = noteTxt
         if (!wxId.isNullOrEmpty()) {
             instance!!.init(context)
             if (!instance!!.checkAccessibilityEnabled(WxAccessibilityService::class.java.simpleName)) {
@@ -77,8 +87,8 @@ class AddWxHelper(context: Context) : ILifecycle {
     }
 
     private fun turn2addWx() {
-        val userName = "小小微助手"
-        setAddInfo(mCurrentNeedAddWxId!!, String.format(mWeakRfContext.get()!!.getString(R.string.txt_add_wx_hint), userName))
+        val sayHiTxt = mCurrentSayHiTxt ?: String.format(mWeakRfContext.get()!!.getString(R.string.txt_add_wx_hint), "小小微助手")
+        setAddInfo(mCurrentNeedAddWxId!!, sayHiTxt, mCurrentNote)
         openWechat()
     }
 

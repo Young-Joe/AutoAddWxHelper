@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import com.joe.autoaddwxhelper.showToast
 
 /**
@@ -39,13 +40,18 @@ class WxAccessibilityService : BaseAccessibilityService() {
         /**
          * 添加好友的问候语
          */
-        var addHint = ""
-        fun setAddInfo(inputWxId: String, inputAddHint: String?) {
+        var sayHiTxt = ""
+        /**
+         * 添加好友的备注
+         */
+        var noteTxt = ""
+        fun setAddInfo(inputWxId: String, inputSayHiTxt: String?, inputNoteTxt: String?) {
             isAddDone = false
             isAddAction = true
             addStep = 0
             wxId = inputWxId
-            addHint = inputAddHint ?: ""
+            sayHiTxt = inputSayHiTxt ?: ""
+            noteTxt = inputNoteTxt ?: ""
         }
     }
 
@@ -94,7 +100,9 @@ class WxAccessibilityService : BaseAccessibilityService() {
                             if (findViewByID(WxViewIdDef.IV_BACK) != null) {
                                 performBackClick()
                             } else {
-                                clickTextViewByID(WxViewIdDef.IV_SEARCH)
+                                val searchNodeInfo = findAccessibilityNodeInfosByDesc(rootInActiveWindow, "搜索")
+                                performViewClick(searchNodeInfo)
+//                                clickTextViewByID(WxViewIdDef.IV_SEARCH)
                                 addStep = 1
                             }
                         })
@@ -120,7 +128,8 @@ class WxAccessibilityService : BaseAccessibilityService() {
                             //延迟用于隐藏输入法
                             delay(500)
                             performBackClick()
-                            val inputViewInfo = findViewByID(WxViewIdDef.EDT_SEARCH)
+//                            val inputViewInfo = findViewByID(WxViewIdDef.EDT_SEARCH)
+                            val inputViewInfo = findSearchEditText(rootInActiveWindow)
                             delay(500)
                             addStep = 2
                             inputText(inputViewInfo, wxId)
@@ -132,7 +141,6 @@ class WxAccessibilityService : BaseAccessibilityService() {
                             //根据有无添加到通讯录View.判断是否是已添加的好友
                             if (findViewByText("添加到通讯录", false) != null) {
                                 addStep = 4
-                                delay(50)
                                 clickTextViewByText("添加到通讯录")
 
 //                                setAddDone()
@@ -147,16 +155,23 @@ class WxAccessibilityService : BaseAccessibilityService() {
                     //申请添加朋友页
                     WxPageClassDef.SAY_HI2ADD -> {
                         //添加朋友申请Edt
-                        if (addHint.isNullOrEmpty()) {
+                        if (sayHiTxt.isNullOrEmpty() && noteTxt.isNullOrEmpty()) {
                             clickTextViewByID(WxViewIdDef.BTN_SEND)
                         } else {
-                            val inputViewInfo = findViewByID(WxViewIdDef.EDT_ADD_HINT)
-                            delay(50)
-                            inputText(inputViewInfo, addHint)
+                            val editTextInfos = findEdiTextInSayHi()
+                            if (editTextInfos.isNotEmpty() && editTextInfos.size == 2) {
+                                delay(50)
+                                if (!sayHiTxt.isNullOrEmpty()) {
+                                    inputText(editTextInfos[0], sayHiTxt)
+                                }
+                                if (!noteTxt.isNullOrEmpty()) {
+                                    inputText(editTextInfos[1], noteTxt)
+                                }
+                            }
                             clickTextViewByID(WxViewIdDef.BTN_SEND)
                         }
                         delay(500)
-                        showToast("添加完成,返回中...")
+                        application.showToast("添加完成,返回中...")
                         setAddDone()
                     }
                     else -> {
@@ -170,12 +185,13 @@ class WxAccessibilityService : BaseAccessibilityService() {
             }
             AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
                 eventTypeName = "TYPE_WINDOW_CONTENT_CHANGED"
-                if (!isAddDone && isAddAction && addStep < 3 ) {
-                    if (findViewByID(WxViewIdDef.BTN_SEARCH) != null) {
-                        checkAddDone (accessibilityEvent, addBlock = {
+                if (!isAddDone && isAddAction && addStep < 3) {
+                    if (findViewByText("查找") != null) {
+                        checkAddDone(accessibilityEvent, addBlock = {
                             addStep = 3
                             delay(500)
-                            clickTextViewByID(WxViewIdDef.BTN_SEARCH)
+//                            clickTextViewByID(WxViewIdDef.BTN_SEARCH)
+                            clickTextViewByText("查找")
                         })
                     }
                 }
@@ -185,7 +201,7 @@ class WxAccessibilityService : BaseAccessibilityService() {
                     if (findViewByText("用户不存在") != null) {
                         setAddDone()
                     } else if (findViewByText("操作过于频繁") != null) {
-                        showToast("警告!您当前操作过于频繁,请稍后尝试!")
+                        application.showToast("警告!您当前操作过于频繁,请稍后尝试!")
                         setAddDone()
                     }
                 }
@@ -224,7 +240,74 @@ class WxAccessibilityService : BaseAccessibilityService() {
                 }
             }
         }
+    }
 
+    /**
+     * 微信搜索页.查找搜索输入框
+     */
+    private fun findSearchEditText(inputNodeInfo: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
+        val accessibilityNodeInfo = inputNodeInfo ?: return null
+        if (accessibilityNodeInfo.className.equals("android.widget.EditText") &&
+            (!accessibilityNodeInfo.text.isNullOrEmpty() && accessibilityNodeInfo.text.equals("搜索"))) {
+            return accessibilityNodeInfo
+        } else {
+            val childCount = accessibilityNodeInfo.childCount
+            if (childCount != 0) {
+                for (i in 0 until childCount) {
+                    val indexNodeInfo = findSearchEditText(accessibilityNodeInfo.getChild(i))
+                    if (indexNodeInfo != null) {
+                        return indexNodeInfo
+                    }
+                }
+            }
+            return null
+        }
+    }
+
+    /**
+     * 根据contentDes来定位对应的view
+     */
+    private fun findAccessibilityNodeInfosByDesc(inputNodeInfo: AccessibilityNodeInfo?, desc: String): AccessibilityNodeInfo? {
+        val accessibilityNodeInfo = inputNodeInfo ?: return null
+        if (!accessibilityNodeInfo.contentDescription.isNullOrEmpty() &&
+            accessibilityNodeInfo.contentDescription.equals(desc)) {
+            return accessibilityNodeInfo
+        } else {
+            val childCount = accessibilityNodeInfo.childCount
+            if (childCount != 0) {
+                for (i in 0 until childCount) {
+                    val indexNodeInfo = findAccessibilityNodeInfosByDesc(accessibilityNodeInfo.getChild(i), desc)
+                    if (indexNodeInfo != null) {
+                        return indexNodeInfo
+                    }
+                }
+            }
+            return null
+        }
+    }
+
+    /**
+     * 添加好友申请页.
+     * 遍历找到 <发送添加朋友申请> 和 <设置备注> 对应的EditText
+     */
+    private fun findEdiTextInSayHi(): ArrayList<AccessibilityNodeInfo> {
+        val editTextInfos = ArrayList<AccessibilityNodeInfo>()
+        findDetailEdiTextInSayHi(rootInActiveWindow, editTextInfos)
+        return editTextInfos
+    }
+
+    private fun findDetailEdiTextInSayHi(inputNodeInfo: AccessibilityNodeInfo?, editTextInfos: ArrayList<AccessibilityNodeInfo>) {
+        val accessibilityNodeInfo = inputNodeInfo ?: return
+        if (accessibilityNodeInfo.className.equals("android.widget.EditText")) {
+            editTextInfos.add(accessibilityNodeInfo)
+        } else {
+            val childCount = accessibilityNodeInfo.childCount
+            if (childCount != 0) {
+                for (i in 0 until childCount) {
+                    findDetailEdiTextInSayHi(accessibilityNodeInfo.getChild(i), editTextInfos)
+                }
+            }
+        }
     }
 
 }
