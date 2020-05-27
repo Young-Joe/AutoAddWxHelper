@@ -32,17 +32,29 @@ open class BaseAccessibilityService : AccessibilityService() {
     /**
      * Check当前辅助服务是否启用
      *
-     * @param serviceName serviceName
+     * @param servicePathName serviceName
+     * @param applicationName 用于区分测试包正式包
      * @return 是否启用
      */
-    fun checkAccessibilityEnabled(serviceName: String): Boolean {
+    fun checkAccessibilityEnabled(servicePathName: String, applicationName: String?): Boolean {
         val accessibilityServices = mAccessibilityManager!!.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
         for (info in accessibilityServices) {
-            if (info.id.contains(serviceName)) {
+            if (servicePathName.equals(info.resolveInfo.serviceInfo.name) &&
+                (applicationName.isNullOrEmpty() || applicationName.equals(info.resolveInfo.serviceInfo.packageName))) {
                 return true
             }
         }
         return false
+    }
+
+    /**
+     * Check当前辅助服务是否启用
+     *
+     * @param servicePathName serviceName
+     * @return 是否启用
+     */
+    fun checkAccessibilityEnabled(servicePathName: String): Boolean {
+        return checkAccessibilityEnabled(servicePathName, null)
     }
 
     /**

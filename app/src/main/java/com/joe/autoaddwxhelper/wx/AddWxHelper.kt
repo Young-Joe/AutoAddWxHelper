@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AlertDialog
+import com.joe.autoaddwxhelper.BuildConfig
 import com.joe.autoaddwxhelper.R
 import com.joe.autoaddwxhelper.showToast
 import com.joe.autoaddwxhelper.wx.BaseAccessibilityService.Companion.instance
@@ -44,7 +45,7 @@ class AddWxHelper(context: Context) : ILifecycle {
         if (mIsRequestedAccessibilityPms) {
             val context = mWeakRfContext.get() ?: return
             instance!!.init(context)
-            if (!instance!!.checkAccessibilityEnabled(WxAccessibilityService::class.java.simpleName)) {
+            if (!instance!!.checkAccessibilityEnabled(WxAccessibilityService::class.java.name, BuildConfig.APPLICATION_ID)) {
                 context.showToast("请您先开启" + context.getString(R.string.txt_wx_accessibility_name))
                 instance!!.goAccess()
             } else {

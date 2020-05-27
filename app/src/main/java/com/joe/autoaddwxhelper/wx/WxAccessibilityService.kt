@@ -154,6 +154,7 @@ class WxAccessibilityService : BaseAccessibilityService() {
                     }
                     //申请添加朋友页
                     WxPageClassDef.SAY_HI2ADD -> {
+                        delay(100)
                         //添加朋友申请Edt
                         if (sayHiTxt.isNullOrEmpty() && noteTxt.isNullOrEmpty()) {
                             clickTextViewByID(WxViewIdDef.BTN_SEND)
@@ -168,10 +169,12 @@ class WxAccessibilityService : BaseAccessibilityService() {
                                     inputText(editTextInfos[1], noteTxt)
                                 }
                             }
+                            delay(800)
                             clickTextViewByID(WxViewIdDef.BTN_SEND)
                         }
-                        delay(500)
+//                        LogUtils.e(TAG + "添加完成" + "addStep: " + addStep)
                         application.showToast("添加完成,返回中...")
+                        delay(500)
                         setAddDone()
                     }
                     else -> {
@@ -200,15 +203,17 @@ class WxAccessibilityService : BaseAccessibilityService() {
                     delay(500)
                     if (findViewByText("用户不存在") != null) {
                         setAddDone()
+                        performBackClick()
                     } else if (findViewByText("操作过于频繁") != null) {
                         application.showToast("警告!您当前操作过于频繁,请稍后尝试!")
                         setAddDone()
+                        performBackClick()
                     }
                 }
 
             }
         }
-        Log.i(TAG, "addStep: " + addStep + " eventTypeName:" + eventTypeName + " " + accessibilityEvent.className)
+        Log.e(TAG, "addStep: " + addStep + " eventTypeName:" + eventTypeName + " " + accessibilityEvent.className)
     }
 
     /**
